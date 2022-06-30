@@ -1,5 +1,6 @@
 class ArticlesController < ApplicationController
   before_action :set_article, only: %i[ show edit update destroy ]
+  #before_action :baria_user, only: [:edit, :destroy]
 
   # GET /articles or /articles.json
   def index
@@ -21,40 +22,27 @@ class ArticlesController < ApplicationController
 
   # POST /articles or /articles.json
   def create
-    @article = Article.new(article_params)
-
-    respond_to do |format|
-      if @article.save
-        format.html { redirect_to article_url(@article), notice: " 記事を作成しました" }
-        format.json { render :show, status: :created, location: @article }
-      else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @article.errors, status: :unprocessable_entity }
-      end
+    @article = Article.new(article_params,user_id: @current_user.id)
+    if @article.save
+      redirect_to @article, notice: "記事を作成しました"
+    else
+      render :new, status: :unprocessable_entity
     end
   end
 
   # PATCH/PUT /articles/1 or /articles/1.json
   def update
-    respond_to do |format|
-      if @article.update(article_params)
-        format.html { redirect_to article_url(@article), notice: " 記事を編集しました" }
-        format.json { render :show, status: :ok, location: @article }
-      else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @article.errors, status: :unprocessable_entity }
-      end
+    if @article.update(article_params)
+      redirect_to @article, notice: "記事を編集しました"
+    else
+      render :edit, status: :unprocessable_entity
     end
   end
 
   # DELETE /articles/1 or /articles/1.json
   def destroy
     @article.destroy
-
-    respond_to do |format|
-      format.html { redirect_to articles_url, notice: " 記事を削除しました" }
-      format.json { head :no_content }
-    end
+    edirect_to articles_url, notice: "記事を削除しました"
   end
 
   private
@@ -67,4 +55,12 @@ class ArticlesController < ApplicationController
     def article_params
       params.require(:article).permit(:title, :content)
     end
+
+    # #投稿者のみ編集削除できるように
+    # def baria_user
+    #   unless Article.find(params[:id]).user_id == current_user.id
+    #     flash[:notice] = "権限がありません"
+    #     redirect_to articles_path
+    #   end
+    # end
 end
